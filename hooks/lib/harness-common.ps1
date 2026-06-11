@@ -1,4 +1,4 @@
-# opus-harness hooks 共用函式。鐵律 fail-open：任何函式內部錯誤不得拋出致命例外。
+﻿# opus-harness hooks 共用函式。鐵律 fail-open：任何函式內部錯誤不得拋出致命例外。
 
 function Find-HarnessDir {
   param([string]$StartDir)
