@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "opus-harness project config",
+  "type": "object",
+  "required": ["commands"],
+  "properties": {
+    "stack": { "type": "array", "items": { "type": "string" } },
+    "commands": {
+      "type": "object",
+      "required": ["test"],
+      "properties": {
+        "test": { "type": "string", "minLength": 1 },
+        "testQuick": { "type": "string" },
+        "lint": { "type": "string" },
+        "typecheck": { "type": "string" },
+        "build": { "type": "string" }
+      }
+    },
+    "skillDispatch": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    },
+    "indexTools": {
+      "type": "object",
+      "properties": { "codegraph": { "type": "boolean" } }
+    },
+    "voting": {
+      "type": "object",
+      "properties": {
+        "panelSize": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3 },
+        "ratchetLimit": { "type": "integer", "minimum": 1, "default": 2 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "items": { "enum": ["performance", "maintainability-readability", "security"] },
+          "default": ["performance", "maintainability-readability", "security"]
+        },
+        "threshold": { "type": "integer", "minimum": 0, "maximum": 10, "default": 7 }
+      }
+    },
+    "planApproval": { "enum": ["notify", "always-ask"], "default": "notify" }
+  }
+}
