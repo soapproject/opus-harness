@@ -1,0 +1,11 @@
+{
+  "name": "opus-harness-local",
+  "owner": { "name": "weiss" },
+  "plugins": [
+    {
+      "name": "opus-harness",
+      "source": "./",
+      "description": "Quality harness for Opus 4.8: hard gates + delegated process"
+    }
+  ]
+}

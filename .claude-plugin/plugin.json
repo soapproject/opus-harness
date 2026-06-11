@@ -1,0 +1,6 @@
+{
+  "name": "opus-harness",
+  "version": "0.1.0",
+  "description": "Quality harness for weaker models: quantified specs, TDD ratchet hooks, adversarial review panels, lesson distillation, harness benchmarking.",
+  "author": { "name": "weiss" }
+}
