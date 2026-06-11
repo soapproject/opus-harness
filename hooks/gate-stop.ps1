@@ -3,6 +3,7 @@
 . (Join-Path $PSScriptRoot "lib\harness-common.ps1")
 
 try {
+  try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
   if (-not $StdinJson) { $StdinJson = [Console]::In.ReadToEnd() }
   $payload = $null
   try { $payload = $StdinJson | ConvertFrom-Json } catch {}
