@@ -56,6 +56,10 @@ Describe "gate-stop" {
     $r = Invoke-Gate -Fixture $f -PayloadJson $payload
     $r.Code | Should -Be 0
     $r.Text | Should -Match "stop-gate"
+    $telemetryPath = Join-Path $f ".claude\harness\telemetry.jsonl"
+    Test-Path $telemetryPath | Should -BeTrue
+    $lastEvent = Get-Content $telemetryPath | Select-Object -Last 1 | ConvertFrom-Json
+    $lastEvent.event | Should -Be "fail-open"
   }
 
   It "testQuick passes resets stop_block_count to 0" {
@@ -91,5 +95,9 @@ Describe "gate-stop" {
     $payload = '{"cwd":"' + ($f -replace '\\','\\') + '","stop_hook_active":true}'
     $r = Invoke-Gate -Fixture $f -PayloadJson $payload
     $r.Code | Should -Be 0
+    $telemetryPath = Join-Path $f ".claude\harness\telemetry.jsonl"
+    Test-Path $telemetryPath | Should -BeTrue
+    $lastEvent = Get-Content $telemetryPath | Select-Object -Last 1 | ConvertFrom-Json
+    $lastEvent.event | Should -Be "fail-open-escape"
   }
 }
