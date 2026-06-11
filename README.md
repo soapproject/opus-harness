@@ -8,6 +8,7 @@ Spec：`ws\idea\docs\superpowers\specs\2026-06-12-opus-quality-harness-design.md
 1. `/plugin marketplace add <path-to-repo>`
 2. `/plugin install opus-harness@opus-harness-local`
 3. 重啟 Claude Code session。
+4. 註：`marketplace.json` 的 `source: "./"` 是相對 marketplace 根（= repo 根）解析，本 repo 兼作自身的 marketplace。
 
 ## 指令
 
