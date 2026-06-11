@@ -7,3 +7,4 @@
 - Windows PowerShell 5.1 相容：禁用 `&&`、`||`、`??`、`?.`、ternary；檔案輸出一律 `-Encoding utf8`。
 - 所有 `.ps1` 一律存成 UTF-8 **with BOM**（PS 5.1 無 BOM 會把中文讀成亂碼）；會輸出中文到 stdout/stderr 的腳本開頭先設 `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`。
 - 檔案系統操作一律 `-LiteralPath` ＋ `-ErrorAction Stop`（在 try/catch 內）；狀態檔寫入用 temp+Move-Item 原子交換。
+- hook 讀 stdin 一律用 lib 的 Read-HookStdin（強制 UTF-8 解碼）；執行外部指令字串用 -EncodedCommand（防引號剝離）。

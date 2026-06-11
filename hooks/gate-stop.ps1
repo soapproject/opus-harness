@@ -4,7 +4,7 @@
 
 try {
   try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
-  if (-not $StdinJson) { $StdinJson = [Console]::In.ReadToEnd() }
+  if (-not $StdinJson) { $StdinJson = Read-HookStdin }
   $payload = $null
   try { $payload = $StdinJson | ConvertFrom-Json } catch {}
   $cwd = $null
@@ -36,11 +36,16 @@ try {
     exit 0
   }
 
+  $slice = ""
+  if ($state.PSObject.Properties["active_slice"]) { $slice = $state.active_slice }
+
   $projectRoot = Split-Path (Split-Path $harnessDir -Parent) -Parent
+  $b64 = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($cmd))
   Push-Location $projectRoot
-  $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd 2>&1 | Out-String
-  $code = $LASTEXITCODE
-  Pop-Location
+  try {
+    $output = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $b64 2>&1 | ForEach-Object { "$_" } | Out-String
+    $code = $LASTEXITCODE
+  } finally { Pop-Location }
 
   if ($code -eq 0) {
     Update-StateField -HarnessDir $harnessDir -Name "stop_block_count" -Value 0
@@ -48,7 +53,7 @@ try {
   }
 
   Update-StateField -HarnessDir $harnessDir -Name "stop_block_count" -Value ($blockCount + 1)
-  Write-Telemetry -HarnessDir $harnessDir -Constraint "stop-gate" -Event "block" -Detail "exit=$code"
+  Write-Telemetry -HarnessDir $harnessDir -Constraint "stop-gate" -Event "block" -Detail "exit=$code slice=$slice"
   $tail = ($output -split "`n" | Select-Object -Last 50) -join "`n"
   [Console]::Error.WriteLine("[opus-harness stop-gate] 驗證指令失敗（exit $code），不得宣稱完成。修復失敗或 infra 壞掉時用 /opus-harness:cycle pause。失敗輸出（尾 50 行）：`n$tail")
   exit 2

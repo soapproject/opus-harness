@@ -24,6 +24,13 @@ function Read-HarnessJson {
   } catch { return $null }
 }
 
+function Read-HookStdin {
+  try {
+    $sr = New-Object System.IO.StreamReader([Console]::OpenStandardInput(), (New-Object System.Text.UTF8Encoding $false))
+    return $sr.ReadToEnd()
+  } catch { return "" }
+}
+
 function Test-CycleActive {
   param($State)
   try {
@@ -64,9 +71,14 @@ function Update-StateField {
     if ($state.PSObject.Properties[$Name]) { $state.$Name = $Value }
     else { $state | Add-Member -NotePropertyName $Name -NotePropertyValue $Value }
     $tmp = "$path.tmp-$PID"
-    Set-Content -LiteralPath $tmp -Value ($state | ConvertTo-Json -Depth 8) -Encoding utf8 -ErrorAction Stop
-    Move-Item -LiteralPath $tmp -Destination $path -Force -ErrorAction Stop
-    $tmp = $null
+    for ($i = 0; $i -lt 3; $i++) {
+      try {
+        Set-Content -LiteralPath $tmp -Value ($state | ConvertTo-Json -Depth 8) -Encoding utf8 -ErrorAction Stop
+        Move-Item -LiteralPath $tmp -Destination $path -Force -ErrorAction Stop
+        $tmp = $null
+        break
+      } catch { Start-Sleep -Milliseconds (10 * ($i + 1)) }
+    }
   } catch {
     if ($tmp) { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
   }
