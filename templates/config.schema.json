@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "opus-harness project config",
+  "description": "Consumer contract: JSON Schema defaults are NOT auto-applied. /calibrate must write a COMPLETE config (all optional fields with their default values). Hook scripts must still null-coalesce when reading (e.g. missing voting.ratchetLimit -> 2).",
   "type": "object",
   "required": ["commands"],
   "properties": {
@@ -10,7 +11,7 @@
       "required": ["test"],
       "properties": {
         "test": { "type": "string", "minLength": 1 },
-        "testQuick": { "type": "string" },
+        "testQuick": { "type": "string", "description": "Fast scoped test run. If absent, stop-gate hook falls back to commands.test; if both absent, hook warns and fail-opens." },
         "lint": { "type": "string" },
         "typecheck": { "type": "string" },
         "build": { "type": "string" }
