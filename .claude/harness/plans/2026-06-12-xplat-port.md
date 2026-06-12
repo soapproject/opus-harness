@@ -76,7 +76,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 注意：live plugin 為快取副本，本片不影響使用者現行 hooks（cutover 在 merge 後）
 
 ### S8 文件＋最終驗證＋PR（G5/G6）
-- [ ] 行為：README 雙平台安裝；六目標查核；PR 開立
+- [x] 行為：README 雙平台安裝；六目標查核；PR 開立（e36e512 docs＋4ea7ba8 review fixes；validate 過；G1=50/50、G2=run 27433012413 success（Linux 50/0/0）、G3/G4 grep 零＋已測試化、G6 Windows 4 步/Ubuntu 5 步；**PR #1 已開**：https://github.com/soapproject/opus-harness/pull/1 ——停等人類 merge）
 - 檔案：`README.md`、`CLAUDE.md`
 - 改：README 安裝節加 Ubuntu（≤5 步：CLI、snap pwsh、marketplace add、install、重啟）與 Windows（winget pwsh + 既有流程）；註明 macOS 未實測、無 pwsh = hooks 非阻斷錯誤（fail-open）、**merge 後 cutover：master checkout → `claude plugin marketplace update opus-harness-local` → 重裝/重啟，嚴禁 branch 狀態 update**；CLAUDE.md house rule：pwsh 為唯一 hook 引擎
 - 驗收：`claude plugin validate .` 通過；G1–G6 查核表逐項打勾附證據；`gh pr create`（base master、head cross-platform，body 附證據）——**停在等人類 merge（wrapup 前最後回報）**
