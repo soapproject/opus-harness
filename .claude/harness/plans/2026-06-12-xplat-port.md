@@ -57,7 +57,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 內嵌 T4/T4b 全文如上
 
 ### S6 測試套件平台中立＋runner 引擎統一
-- [ ] 行為：四個測試檔與 runner 在 Linux 可執行（temp 路徑、stdin 測試、字面值分隔符、child 引擎）
+- [x] 行為：四個測試檔與 runner 在 Linux 可執行（temp 路徑、stdin 測試、字面值分隔符、child 引擎）（b2fc5c5；$env:TEMP→GetTempPath ×18、反斜線字面值清零、F3 stdin 改 pipeline 且實證仍走 Read-HookStdin、runner 引擎→pwsh；48/48 綠；verifier pass 零 findings、It 數前後皆 48 無弱化；紅證據＝S3 Linux CI 紅基線）
 - 檔案：`tests/gate-stop.Tests.ps1`、`tests/runner.Tests.ps1`、`bench/runner.ps1`
 - 改：`$env:TEMP` → `[IO.Path]::GetTempPath()`（全部四檔，含 S2/S5 已動過的再掃一次）；gate-stop F3 的 `cmd /c "... < file"` stdin 測試 → 跨平台寫法（`Get-Content file -Raw | & pwsh -File gate` 或平台分支）；測試內 `".claude\harness"`、`"..\hooks\..."` 字面值 → Join-Path 組合；runner.ps1 child 與 `$AgentCommand` 預設 `powershell`→`pwsh`；runner.Tests 的裸 `powershell` 全改
 - 綠＝驗收：G1 指令 exit 0（48）；`git grep -nE "\bpowershell(\.exe)?\b" -- tests bench` 無命中
