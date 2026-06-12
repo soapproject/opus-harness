@@ -12,6 +12,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - [計畫審查 R1] gate-ratchet 的 `-like` 未跳脫 `$root` 是既有缺陷（root 含 `[ ]` 即失效）：本次一併以 `[WildcardPattern]::Escape` 修復（觸碰同段程式碼的正確性修復，非語意變更）；`-like` 不分大小寫在 Linux 上對 `Docs/` 偏寬鬆＝**接受為已知限制**（fail-open 方向），記入 constraints.md
 - [計畫審查 R1] G3 量測樣式改為抓**裸 `powershell`**（word-boundary），否則 runner.Tests/config 的無 .exe 引用漏網——spec 驗證表已同步修訂
 - [S2 前] 教訓實例：用 PS 5.1 Get-Content（未帶 -Encoding utf8）讀寫無 BOM UTF-8 計畫檔導致全檔亂碼，自 context 重建——repo 文字檔的編輯一律用檔案工具，不用 shell 字串手術（retro 候選）
+- [S2 驗證] 教訓實例：S2 verifier 與 S3 implementer 並行於同一 working tree → verifier 跑套件得到污染性假紅（16 紅 vs 靜止重跑 45 綠）。會執行測試的 verifier 不是純讀取操作，必須在 tree 靜止時跑或用隔離 worktree（retro 候選，harness 級）
 
 ## Slices（依賴：S1→S2→S3→S4→S5→S6→S7→S8；G2 達成點在 S7）
 
@@ -22,7 +23,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 驗收：`pwsh -NoProfile -Command "(Get-Module -ListAvailable Pester | Select-Object -First 1).Version.Major; $PSVersionTable.PSVersion.Major"` 輸出含 `5` 與 `7` ✅
 
 ### S2 hook/lib 測試檔改 pwsh ＋ config 引擎切換（自咬窗口處理）
-- [ ] 行為：三個 hook/lib 測試檔的 child invocation 改 pwsh、全綠；專案 config 同步切 pwsh
+- [x] 行為：三個 hook/lib 測試檔的 child invocation 改 pwsh、全綠；專案 config 同步切 pwsh（db2b188；紅證據：pwsh literal passing 使 5.1 式跳脫反向出錯 16 紅→修正→45 綠；驗證裁決記錄：verifier 與 S3 並行導致污染性假紅，靜止重跑 45/45——教訓入 Decisions）
 - 檔案：`tests/gate-stop.Tests.ps1`、`tests/gate-ratchet.Tests.ps1`、`tests/harness-common.Tests.ps1`、`.claude/harness/config.json`
 - 紅：`pwsh -NoProfile -Command "$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount"`（從 cmd/bash 呼叫以免外層展開 `$r`）預期非 0，記錄實際紅項
 - 改：child `powershell.exe` → `pwsh`；引數跳脫依 pwsh 實測修正（7.3+ literal passing）；**嚴禁削弱斷言**；config.json test/testQuick → 裸 `pwsh` 版
@@ -30,7 +31,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 內嵌 T1：Given 既有 45 測試，When pwsh 7 執行，Then 全綠
 
 ### S3 GitHub Actions linux-tests workflow（Linux 紅綠測試台）
-- [ ] 行為：push 即於 ubuntu-latest 以 pwsh 跑全套件
+- [x] 行為：push 即於 ubuntu-latest 以 pwsh 跑全套件（e450cb0；首跑 run 27393290930 = failure 如預期，紅項分類見文末記錄）
 - 檔案：`.github/workflows/linux-tests.yml`
 - 內容：`on: [push, pull_request]`；`runs-on: ubuntu-latest`；steps：`actions/checkout@v4` → `Install-Module Pester -Force -SkipPublisherCheck`（shell: pwsh）→ 跑套件（shell: pwsh，inline `$r = Invoke-Pester ...; exit $r.FailedCount`）
 - 預期：首跑**紅**＝後續切片的紅階段證據，紅項清單記入本計畫
