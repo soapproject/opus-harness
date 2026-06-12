@@ -95,7 +95,7 @@ Describe "Write-Telemetry and Update-StateField" {
     $stderrFile = Join-Path $env:TEMP ("oh-stderr-" + [guid]::NewGuid() + ".txt")
     try {
       $psi = New-Object System.Diagnostics.ProcessStartInfo
-      $psi.FileName = "powershell.exe"
+      $psi.FileName = "pwsh"
       $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -Command `". '$libPath'; Write-Telemetry -HarnessDir 'C:\definitely\missing\dir-xyz' -Constraint t -Event e -Detail d`""
       $psi.RedirectStandardError = $true
       $psi.RedirectStandardOutput = $true

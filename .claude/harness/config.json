@@ -1,0 +1,12 @@
+﻿{
+  "stack": ["powershell", "pester"],
+  "commands": {
+    "test": "pwsh -NoProfile -Command \"$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount\"",
+    "testQuick": "pwsh -NoProfile -Command \"$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount\""
+  },
+  "skillDispatch": { "security": ["security-review"] },
+  "indexTools": { "codegraph": false },
+  "voting": { "panelSize": 3, "ratchetLimit": 2 },
+  "review": { "dimensions": ["performance", "maintainability-readability", "security"], "threshold": 7 },
+  "planApproval": "notify"
+}

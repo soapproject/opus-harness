@@ -11,8 +11,7 @@
   }
   function Invoke-Gate {
     param([string]$Fixture, [string]$PayloadJson)
-    $escapedJson = $PayloadJson -replace '"', '\"'
-    $out = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script:gate -StdinJson $escapedJson 2>&1
+    $out = & pwsh -NoProfile -ExecutionPolicy Bypass -File $script:gate -StdinJson $PayloadJson 2>&1
     return @{ Code = $LASTEXITCODE; Text = ($out | Out-String) }
   }
 }

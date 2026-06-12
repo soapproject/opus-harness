@@ -11,8 +11,7 @@
   }
   function Invoke-Gate {
     param([string]$Fixture, [string]$PayloadJson)
-    $escapedJson = $PayloadJson -replace '"', '\"'
-    $out = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script:gate -StdinJson $escapedJson 2>&1
+    $out = & pwsh -NoProfile -ExecutionPolicy Bypass -File $script:gate -StdinJson $PayloadJson 2>&1
     return @{ Code = $LASTEXITCODE; Text = ($out | Out-String) }
   }
 }
@@ -137,7 +136,7 @@ Describe "gate-stop" {
     $json = '{"cwd":"' + ($f -replace '\\','\\') + '","stop_hook_active":false}'
     [IO.File]::WriteAllText($payloadFile, $json, (New-Object System.Text.UTF8Encoding $false))
     try {
-      $result = cmd /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""$($script:gate)"" < ""$payloadFile"" 2>&1"
+      $result = cmd /c "pwsh -NoProfile -ExecutionPolicy Bypass -File ""$($script:gate)"" < ""$payloadFile"" 2>&1"
       $exitCode = $LASTEXITCODE
     } finally {
       Remove-Item $payloadFile -Force -ErrorAction SilentlyContinue
