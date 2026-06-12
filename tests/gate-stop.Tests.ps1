@@ -1,9 +1,9 @@
 ﻿BeforeAll {
-  $script:gate = "$PSScriptRoot\..\hooks\gate-stop.ps1"
+  $script:gate = Join-Path $PSScriptRoot ".." "hooks" "gate-stop.ps1"
   function New-Fixture {
     param([string]$StateJson, [string]$ConfigJson)
-    $f = Join-Path $env:TEMP ("oh-stop-" + [guid]::NewGuid())
-    $h = Join-Path $f ".claude\harness"
+    $f = Join-Path ([IO.Path]::GetTempPath()) ("oh-stop-" + [guid]::NewGuid())
+    $h = Join-Path $f ".claude" "harness"
     New-Item -ItemType Directory -Force $h | Out-Null
     if ($StateJson) { Set-Content (Join-Path $h "state.json") $StateJson -Encoding utf8 }
     if ($ConfigJson) { Set-Content (Join-Path $h "config.json") $ConfigJson -Encoding utf8 }
@@ -17,12 +17,13 @@
 }
 
 AfterAll {
-  Get-ChildItem $env:TEMP -Filter "oh-stop-*" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+  Get-ChildItem ([IO.Path]::GetTempPath()) -Filter "oh-stop-*" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Describe "gate-stop" {
   It "no harness dir exits 0" {
-    $r = Invoke-Gate -Fixture $env:TEMP -PayloadJson ('{"cwd":"' + ($env:TEMP -replace '\\','\\') + '","stop_hook_active":false}')
+    $tmp = [IO.Path]::GetTempPath()
+    $r = Invoke-Gate -Fixture $tmp -PayloadJson ('{"cwd":"' + ($tmp -replace '\\','\\') + '","stop_hook_active":false}')
     $r.Code | Should -Be 0
   }
 
@@ -59,7 +60,7 @@ Describe "gate-stop" {
     $r = Invoke-Gate -Fixture $f -PayloadJson $payload
     $r.Code | Should -Be 0
     $r.Text | Should -Match "stop-gate"
-    $telemetryPath = Join-Path $f ".claude\harness\telemetry.jsonl"
+    $telemetryPath = Join-Path $f ".claude" "harness" "telemetry.jsonl"
     Test-Path $telemetryPath | Should -BeTrue
     $lastEvent = Get-Content $telemetryPath | Select-Object -Last 1 | ConvertFrom-Json
     $lastEvent.event | Should -Be "fail-open"
@@ -72,7 +73,7 @@ Describe "gate-stop" {
     $payload = '{"cwd":"' + ($f -replace '\\','\\') + '","stop_hook_active":false}'
     $r = Invoke-Gate -Fixture $f -PayloadJson $payload
     $r.Code | Should -Be 0
-    $stateRaw = Get-Content (Join-Path $f ".claude\harness\state.json") -Raw | ConvertFrom-Json
+    $stateRaw = Get-Content (Join-Path $f ".claude" "harness" "state.json") -Raw | ConvertFrom-Json
     $stateRaw.stop_block_count | Should -Be 0
   }
 
@@ -86,9 +87,9 @@ Describe "gate-stop" {
     $r.Text | Should -Match "stop-gate"
     $r.Text | Should -Match "BOOM"
     $r.Text | Should -Match "驗證指令失敗"
-    $telemetryPath = Join-Path $f ".claude\harness\telemetry.jsonl"
+    $telemetryPath = Join-Path $f ".claude" "harness" "telemetry.jsonl"
     Test-Path $telemetryPath | Should -BeTrue
-    $stateRaw = Get-Content (Join-Path $f ".claude\harness\state.json") -Raw | ConvertFrom-Json
+    $stateRaw = Get-Content (Join-Path $f ".claude" "harness" "state.json") -Raw | ConvertFrom-Json
     $stateRaw.stop_block_count | Should -Be 1
   }
 
@@ -99,7 +100,7 @@ Describe "gate-stop" {
     $payload = '{"cwd":"' + ($f -replace '\\','\\') + '","stop_hook_active":true}'
     $r = Invoke-Gate -Fixture $f -PayloadJson $payload
     $r.Code | Should -Be 0
-    $telemetryPath = Join-Path $f ".claude\harness\telemetry.jsonl"
+    $telemetryPath = Join-Path $f ".claude" "harness" "telemetry.jsonl"
     Test-Path $telemetryPath | Should -BeTrue
     $lastEvent = Get-Content $telemetryPath | Select-Object -Last 1 | ConvertFrom-Json
     $lastEvent.event | Should -Be "fail-open-escape"
@@ -127,16 +128,16 @@ Describe "gate-stop" {
     $r.Text | Should -Match "驗證指令失敗"
   }
 
-  # F3: stdin path (production path) - payload via actual stdin redirect
+  # F3: stdin path (production path) - payload piped to the gate's stdin (no -StdinJson, so the gate must Read-HookStdin)
   It "stdin path: payload via piped stdin triggers block" {
     $f = New-Fixture `
       -StateJson '{"phase":"executing","suspended":false,"stop_block_count":0}' `
       -ConfigJson '{"commands":{"testQuick":"exit 1"}}'
-    $payloadFile = Join-Path $env:TEMP ("oh-stop-stdin-" + [guid]::NewGuid() + ".json")
+    $payloadFile = Join-Path ([IO.Path]::GetTempPath()) ("oh-stop-stdin-" + [guid]::NewGuid() + ".json")
     $json = '{"cwd":"' + ($f -replace '\\','\\') + '","stop_hook_active":false}'
     [IO.File]::WriteAllText($payloadFile, $json, (New-Object System.Text.UTF8Encoding $false))
     try {
-      $result = cmd /c "pwsh -NoProfile -ExecutionPolicy Bypass -File ""$($script:gate)"" < ""$payloadFile"" 2>&1"
+      $out = Get-Content -LiteralPath $payloadFile -Raw | & pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $script:gate 2>&1
       $exitCode = $LASTEXITCODE
     } finally {
       Remove-Item $payloadFile -Force -ErrorAction SilentlyContinue

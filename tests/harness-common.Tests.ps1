@@ -1,20 +1,20 @@
 ﻿BeforeAll {
-  . "$PSScriptRoot\..\hooks\lib\harness-common.ps1"
-  $script:fixture = Join-Path $env:TEMP ("oh-common-" + [guid]::NewGuid())
-  New-Item -ItemType Directory -Force (Join-Path $fixture ".claude\harness") | Out-Null
-  New-Item -ItemType Directory -Force (Join-Path $fixture "src\deep") | Out-Null
+  . (Join-Path $PSScriptRoot ".." "hooks" "lib" "harness-common.ps1")
+  $script:fixture = Join-Path ([IO.Path]::GetTempPath()) ("oh-common-" + [guid]::NewGuid())
+  New-Item -ItemType Directory -Force (Join-Path $fixture ".claude" "harness") | Out-Null
+  New-Item -ItemType Directory -Force (Join-Path $fixture "src" "deep") | Out-Null
 }
 AfterAll { Remove-Item -Recurse -Force $script:fixture -ErrorAction SilentlyContinue }
 
 Describe "Find-HarnessDir" {
-  It "find .claude\harness from subdirectory" {
-    Find-HarnessDir (Join-Path $fixture "src\deep") | Should -Be (Join-Path $fixture ".claude\harness")
+  It "find .claude/harness from subdirectory" {
+    Find-HarnessDir (Join-Path $fixture "src" "deep") | Should -Be (Join-Path $fixture ".claude" "harness")
   }
   It "returns null when StopAt boundary reached before finding harness" {
-    $fixture2 = Join-Path $env:TEMP ("oh-nofind-" + [guid]::NewGuid())
-    New-Item -ItemType Directory -Force (Join-Path $fixture2 "a\b") | Out-Null
+    $fixture2 = Join-Path ([IO.Path]::GetTempPath()) ("oh-nofind-" + [guid]::NewGuid())
+    New-Item -ItemType Directory -Force (Join-Path $fixture2 "a" "b") | Out-Null
     try {
-      Find-HarnessDir (Join-Path $fixture2 "a\b") -StopAt $fixture2 | Should -BeNullOrEmpty
+      Find-HarnessDir (Join-Path $fixture2 "a" "b") -StopAt $fixture2 | Should -BeNullOrEmpty
     } finally {
       Remove-Item -Recurse -Force $fixture2 -ErrorAction SilentlyContinue
     }
@@ -28,12 +28,12 @@ Describe "Find-HarnessDir" {
 
 Describe "Read-HarnessJson" {
   It "valid JSON returns object" {
-    $p = Join-Path $fixture ".claude\harness\state.json"
+    $p = Join-Path $fixture ".claude" "harness" "state.json"
     Set-Content $p '{"phase":"executing","red_count":1}' -Encoding utf8
     (Read-HarnessJson $p).phase | Should -Be "executing"
   }
   It "bad JSON returns null (fail-open)" {
-    $p = Join-Path $fixture ".claude\harness\bad.json"
+    $p = Join-Path $fixture ".claude" "harness" "bad.json"
     Set-Content $p '{not json' -Encoding utf8
     Read-HarnessJson $p | Should -BeNullOrEmpty
   }
@@ -62,19 +62,19 @@ Describe "Test-CycleActive" {
 
 Describe "Write-Telemetry and Update-StateField" {
   It "telemetry appends one JSON line" {
-    $dir = Join-Path $fixture ".claude\harness"
+    $dir = Join-Path $fixture ".claude" "harness"
     Write-Telemetry -HarnessDir $dir -Constraint "stop-gate" -Event "block" -Detail "exit 1"
     $line = Get-Content (Join-Path $dir "telemetry.jsonl") | Select-Object -Last 1
     ($line | ConvertFrom-Json).constraint | Should -Be "stop-gate"
   }
   It "Update-StateField rewrites single field" {
-    $dir = Join-Path $fixture ".claude\harness"
+    $dir = Join-Path $fixture ".claude" "harness"
     Set-Content (Join-Path $dir "state.json") '{"phase":"executing","stop_block_count":0}' -Encoding utf8
     Update-StateField -HarnessDir $dir -Name "stop_block_count" -Value 2
     (Read-HarnessJson (Join-Path $dir "state.json")).stop_block_count | Should -Be 2
   }
   It "Update-StateField adds a new field and preserves existing fields" {
-    $dir = Join-Path $fixture ".claude\harness"
+    $dir = Join-Path $fixture ".claude" "harness"
     Set-Content (Join-Path $dir "state.json") '{"phase":"executing"}' -Encoding utf8
     Update-StateField -HarnessDir $dir -Name "red_count" -Value 3
     $s = Read-HarnessJson (Join-Path $dir "state.json")
@@ -82,7 +82,7 @@ Describe "Write-Telemetry and Update-StateField" {
     $s.phase | Should -Be "executing"
   }
   It "Write-Telemetry called twice produces 2 parseable JSON lines" {
-    $dir2 = Join-Path $env:TEMP ("oh-tel-" + [guid]::NewGuid())
+    $dir2 = Join-Path ([IO.Path]::GetTempPath()) ("oh-tel-" + [guid]::NewGuid())
     New-Item -ItemType Directory -Force $dir2 | Out-Null
     try {
       Write-Telemetry -HarnessDir $dir2 -Constraint "c1" -Event "e1" -Detail "d1"
@@ -96,12 +96,13 @@ Describe "Write-Telemetry and Update-StateField" {
     }
   }
   It "Write-Telemetry with missing dir produces zero stderr and exits 0" {
-    $libPath = "$PSScriptRoot\..\hooks\lib\harness-common.ps1"
-    $stderrFile = Join-Path $env:TEMP ("oh-stderr-" + [guid]::NewGuid() + ".txt")
+    $libPath = Join-Path $PSScriptRoot ".." "hooks" "lib" "harness-common.ps1"
+    $stderrFile = Join-Path ([IO.Path]::GetTempPath()) ("oh-stderr-" + [guid]::NewGuid() + ".txt")
     try {
+      $missingDir = Join-Path ([IO.Path]::GetTempPath()) ("oh-missing-" + [guid]::NewGuid())
       $psi = New-Object System.Diagnostics.ProcessStartInfo
       $psi.FileName = "pwsh"
-      $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -Command `". '$libPath'; Write-Telemetry -HarnessDir 'C:\definitely\missing\dir-xyz' -Constraint t -Event e -Detail d`""
+      $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -Command `". '$libPath'; Write-Telemetry -HarnessDir '$missingDir' -Constraint t -Event e -Detail d`""
       $psi.RedirectStandardError = $true
       $psi.RedirectStandardOutput = $true
       $psi.UseShellExecute = $false
@@ -117,7 +118,7 @@ Describe "Write-Telemetry and Update-StateField" {
     }
   }
   It "Update-StateField on top-level array leaves file unchanged" {
-    $dir = Join-Path $fixture ".claude\harness"
+    $dir = Join-Path $fixture ".claude" "harness"
     $arrJson = '[1,2,3]'
     Set-Content (Join-Path $dir "state.json") $arrJson -Encoding utf8
     Update-StateField -HarnessDir $dir -Name "red_count" -Value 99
