@@ -77,13 +77,13 @@ foreach ($caseDir in $caseDirs) {
     $startCommit = $caseData.startCommit
     $prompt      = $caseData.prompt
 
-    # Build worktree path: bench\work\<caseName>-<yyyyMMddHHmmss> under the runner's dir
+    # Build worktree path: bench/work/<caseName>-<yyyyMMddHHmmss> under the runner's dir
     $tsStamp = $ts.ToString("yyyyMMddHHmmss")
     $workdir = Join-Path $workBase ($caseName + "-" + $tsStamp)
 
     # git worktree add - run from within the repo
     $wtAddScript = "Push-Location -LiteralPath '$repo'; git worktree add --detach '$workdir' '$startCommit' 2>&1; `$ex = `$LASTEXITCODE; Pop-Location; exit `$ex"
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $wtAddScript 2>&1 | Out-Null
+    & pwsh -NoProfile -ExecutionPolicy Bypass -Command $wtAddScript 2>&1 | Out-Null
     $wtExit = $LASTEXITCODE
 
     if ($wtExit -ne 0) {
@@ -110,7 +110,7 @@ foreach ($caseDir in $caseDirs) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     Push-Location -LiteralPath $workdir
     try {
-        $agentOutput = & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd 2>&1 | ForEach-Object { "$_" } | Out-String
+        $agentOutput = & pwsh -NoProfile -ExecutionPolicy Bypass -Command $cmd 2>&1 | ForEach-Object { "$_" } | Out-String
         $agentExit = $LASTEXITCODE
     } catch {
         $agentOutput = "Runner error during agent execution: $_"
@@ -138,7 +138,7 @@ foreach ($caseDir in $caseDirs) {
     if (-not (Test-Path -LiteralPath $verifyScript)) {
         $verifyError = "missing verify.ps1"
     } else {
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $verifyScript -Workdir $workdir 2>&1 | Out-Null
+        & pwsh -NoProfile -ExecutionPolicy Bypass -File $verifyScript -Workdir $workdir 2>&1 | Out-Null
         $verifyExit = $LASTEXITCODE
     }
 
@@ -160,7 +160,7 @@ foreach ($caseDir in $caseDirs) {
     # Cleanup worktree unless -KeepWork
     if (-not $KeepWork) {
         $rmScript = "Push-Location -LiteralPath '$repo'; git worktree remove --force '$workdir' 2>&1; Pop-Location"
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $rmScript | Out-Null
+        & pwsh -NoProfile -ExecutionPolicy Bypass -Command $rmScript | Out-Null
     }
 }
 

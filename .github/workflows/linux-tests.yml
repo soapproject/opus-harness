@@ -1,0 +1,17 @@
+name: linux-tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  pester:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pester
+        shell: pwsh
+        run: Install-Module Pester -RequiredVersion 5.7.1 -Force -SkipPublisherCheck
+      - name: Run test suite
+        shell: pwsh
+        run: |
+          $r = Invoke-Pester -Path tests -PassThru -Output Detailed
+          exit $r.FailedCount
