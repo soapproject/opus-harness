@@ -19,6 +19,11 @@ Describe "Find-HarnessDir" {
       Remove-Item -Recurse -Force $fixture2 -ErrorAction SilentlyContinue
     }
   }
+  It "T3: forward-slash input path finds harness dir same as backslash input" {
+    $slashInput = ($fixture -replace '\\', '/') + "/src/deep"
+    $expected = Join-Path $fixture ".claude" "harness"
+    Find-HarnessDir $slashInput | Should -Be $expected
+  }
 }
 
 Describe "Read-HarnessJson" {

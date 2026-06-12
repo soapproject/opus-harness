@@ -1,11 +1,19 @@
 ﻿# opus-harness hooks 共用函式。鐵律 fail-open：任何函式內部錯誤不得拋出致命例外。
 
+function ConvertTo-NativePath {
+  param([string]$Path)
+  if (-not $Path) { return $Path }
+  $sep = [IO.Path]::DirectorySeparatorChar
+  return ($Path -replace '[\\/]', $sep)
+}
+
 function Find-HarnessDir {
   param([string]$StartDir, [string]$StopAt)
   try {
+    $StartDir = ConvertTo-NativePath $StartDir
     $dir = $StartDir
     while ($dir) {
-      $candidate = Join-Path $dir ".claude\harness"
+      $candidate = Join-Path (Join-Path $dir ".claude") "harness"
       if (Test-Path -LiteralPath $candidate -PathType Container) { return $candidate }
       if ($StopAt -and ($dir -eq $StopAt)) { return $null }
       $parent = Split-Path $dir -Parent

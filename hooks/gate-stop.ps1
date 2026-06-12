@@ -1,6 +1,6 @@
 ﻿param([string]$StdinJson)
 
-. (Join-Path $PSScriptRoot "lib\harness-common.ps1")
+. (Join-Path $PSScriptRoot "lib" "harness-common.ps1")
 
 try {
   try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
@@ -8,7 +8,7 @@ try {
   $payload = $null
   try { $payload = $StdinJson | ConvertFrom-Json } catch {}
   $cwd = $null
-  if ($payload -and $payload.cwd) { $cwd = $payload.cwd } else { $cwd = (Get-Location).Path }
+  if ($payload -and $payload.cwd) { $cwd = ConvertTo-NativePath $payload.cwd } else { $cwd = (Get-Location).Path }
 
   $harnessDir = Find-HarnessDir $cwd
   if (-not $harnessDir) { exit 0 }
@@ -43,7 +43,7 @@ try {
   $b64 = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($cmd))
   Push-Location $projectRoot
   try {
-    $output = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $b64 2>&1 | ForEach-Object { "$_" } | Out-String
+    $output = & pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $b64 2>&1 | ForEach-Object { "$_" } | Out-String
     $code = $LASTEXITCODE
   } finally { Pop-Location }
 
