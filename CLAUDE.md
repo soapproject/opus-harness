@@ -7,6 +7,7 @@
 - **pwsh（PowerShell 7+）是唯一引擎**：hooks、測試、bench 子行程一律 `pwsh`，永不 `powershell.exe`；pwsh-only 語法（3-arg `Join-Path` 等）可用。Windows PowerShell 5.1 不支援（2026-06 跨平台移植定案）。
 - 路徑一律平台中立：禁止反斜線字面值（如 `".claude\harness"`、`"$PSScriptRoot\lib\..."`），用多段 `Join-Path` 組合；外部輸入路徑入口先過 lib 的 `ConvertTo-NativePath`；temp 用 `[IO.Path]::GetTempPath()`，禁 `$env:TEMP`（Linux 上未設定）。
 - `-like` 比對的路徑前綴一律 `[WildcardPattern]::Escape`（防 `[ ]` 等萬用字元路徑）。
-- 所有 `.ps1` 一律存成 UTF-8 **with BOM**（專案既定慣例，測試有斷言；防工具鏈誤判編碼）；會輸出中文到 stdout/stderr 的腳本開頭先設 `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`。
+- 所有 `.ps1` 一律存成 UTF-8 **with BOM**（專案既定慣例，`tests/repo-conventions.Tests.ps1` 有斷言；防工具鏈誤判編碼）；會輸出中文到 stdout/stderr 的腳本開頭先設 `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`。
+- harness config 的 `commands.*` 是 **pwsh 腳本文字**（stop-gate 用 `pwsh -EncodedCommand` 原樣執行）：原生指令列（`npm test`）可直接放；PowerShell 內建寫裸腳本文字（`$r = Invoke-Pester ...; exit $r.FailedCount`）。**嚴禁再包一層 `pwsh -Command "..."`**——外層執行時先插值 `$` 變數，實測會把指令變成永遠 exit 0 的 no-op（2026-06-12 dogfooding 實證，stop-gate 因此被無聲中和）。
 - 檔案系統操作一律 `-LiteralPath` ＋ `-ErrorAction Stop`（在 try/catch 內）；狀態檔寫入用 temp+Move-Item 原子交換。
 - hook 讀 stdin 一律用 lib 的 Read-HookStdin（強制 UTF-8 解碼）；執行外部指令字串用 -EncodedCommand（防引號剝離）。

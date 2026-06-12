@@ -15,6 +15,11 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - [S2 驗證] 教訓實例：S2 verifier 與 S3 implementer 並行於同一 working tree → verifier 跑套件得到污染性假紅（16 紅 vs 靜止重跑 45 綠）。會執行測試的 verifier 不是純讀取操作，必須在 tree 靜止時跑或用隔離 worktree（retro 候選，harness 級）
 - [S4 驗證] 教訓實例：S4 verifier 用 Windows PowerShell 5.1 host 跑套件得 17 紅（報告自述「the runner is Windows PowerShell 5.1」；T3 的 3-arg Join-Path 在 5.1 必紅），但 spec 邊界明文棄 5.1、G1 判準引擎是 pwsh。安靜樹 b4beacd 以規定指令重跑 = 46/46 exit 0 → 裁決 S4 通過。教訓：verifier 必須逐字執行 spec 驗證表的指令（含 shell 引擎），不得意譯或換引擎；與 S2 並行污染同屬「驗證環境保真」類（retro 候選，harness 級）
 - [S4 後] 落實先前已記錄的 gitignore 決議（state.json/telemetry.jsonl 入 .gitignore）並補 git add 漏掉的 specs/（persistent 工件應入版控；plans/ 已入而 specs/ 漏了）
+- [S7] 排序決定：S8 的 `gh pr create` 延後到 Phase 4 評分小組之後執行——PR 是給人類的結論卡，依「先自我審查、人類只收結論」原則，PR body 須附 scorecard 與 G1–G6 證據。S8 先完成 docs＋validate＋查核表（executing 收尾），再 phase→review 跑小組，最後開 PR 停等人類 merge
+- [S7] Actions annotation：actions/checkout@v4 跑在 Node.js 20，2026-09-16 後 runner 移除 Node 20——非本 cycle 範圍，記為後續維護項（retro 候選）
+- [Phase 4] 評分小組（全 diff 702fd2e..e36e512）：效能 9／可維護可讀 7／資安 8，**零 blocker、門檻（≥7）全過**。2 major＋11 minor。本輪即修：2 major 全修（bench.md 指令改 pwsh＋正斜線；新增 `tests/repo-conventions.Tests.ps1`（BOM＋禁 legacy 引擎兩條永久回歸測試，48→50），CLAUDE.md「測試有斷言」宣稱轉真）＋低成本 minor 四件（workflow `permissions: contents: read`、Pester 釘 5.7.1、constraints.md 登記 Linux 反斜線混疊＋前綴未正規化、calibrate.md 過期 5.1 理由改寫）。其餘 minor 緩議入 retro：gate-ratchet cwd 正規化一致性、lib Join-Path 慣用法統一、fixture helper 統一 -LiteralPath、payload builder 去重、CI module cache／trigger 範圍、bench.md 類執行性文件納入 G3 掃描。**hook 程式碼零變動**（保持小組審查時狀態）。
+- [Phase 4] **重大發現：stop-gate 自 S2 起被無聲中和（永遠假綠）**。S2 將 config commands 寫成 `pwsh -NoProfile -Command "$r = ..."` 包裝形；gate-stop 以 `-EncodedCommand` 執行該字串時，外層 pwsh 先把雙引號內 `$r` 插值成空 → 內層收到 ` = Invoke-...; exit `，`=` 為非終止錯誤、裸 `exit` → **exit 0**（探針實證：WRAPPED=0、BARE=5）。state 的 stop_block_count=82 全為 S2 前累積。修復：config commands 改裸 pwsh 腳本文字；calibrate.md＋CLAUDE.md 增「commands＝pwsh 腳本文字，嚴禁再包一層 `pwsh -Command`」規則、校準時以 -EncodedCommand 同構驗證。retro 候選（harness 級）：①gate 自我測試 bench case（故意紅 repo 斷言 stop-gate 必擋）②約束無聲失效偵測（預期觸發卻長期零觸發 → 報警）。
+- [Phase 4] 環境保真第三例：同一樹經 Git Bash 鏈跑套件得 5 紅（CJK 斷言因子行程編碼鏈差異假紅；PowerShell 工具暫時 EPERM 才改走 bash），規定 pwsh 指令重跑 50/50 綠。與 S2 並行污染、S4 錯引擎同類。retro 候選：測試 BeforeAll 統一設 console 編碼降低環境敏感。
 
 ## Slices（依賴：S1→S2→S3→S4→S5→S6→S7→S8；G2 達成點在 S7）
 
@@ -64,7 +69,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 內嵌 T5（文件化項，S8 寫 README）
 
 ### S7 hooks.json→pwsh → Linux 全綠（G2 達成）
-- [ ] 行為：hook 佈線改 pwsh、全 repo G3/G4 歸零、Actions 綠
+- [x] 行為：hook 佈線改 pwsh、全 repo G3/G4 歸零、Actions 綠（db212b9；G3/G4 grep 零命中、G1 48/48；**G2 達成**：run 27431698931 success，log 確認 Tests Passed: 48, Failed: 0, Skipped: 0 @ ubuntu-latest 18.46s；本片 2 行佈線由主迴圈直做，新鮮視角驗證＝ubuntu CI 本身＋Phase 4 全 diff 評分小組）
 - 檔案：`hooks/hooks.json`
 - 改：command `powershell.exe ... \\hooks\\gate-*.ps1` → `pwsh -NoProfile -File "${CLAUDE_PLUGIN_ROOT}/hooks/gate-*.ps1"`（正斜線兩平台皆通）
 - 驗收：`git grep -nE "\bpowershell(\.exe)?\b" -- hooks bench tests` 無命中（G3）；`git grep -lE "claude\\\\harness" -- "*.ps1"` 無輸出（G4）；G1 exit 0；push → `gh run list --workflow linux-tests.yml --limit 1 --json conclusion` = success（**G2**）

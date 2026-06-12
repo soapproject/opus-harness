@@ -1,0 +1,34 @@
+[
+  {
+    "cycle_id": "20260612-xplat-port",
+    "date": "2026-06-12",
+    "review_range": "702fd2e..e36e512",
+    "threshold": 7,
+    "dimensions": {
+      "performance": 9,
+      "maintainability-readability": 7,
+      "security": 8
+    },
+    "verdict": "pass",
+    "blockers": 0,
+    "majors": 2,
+    "minors": 11,
+    "findings": [
+      { "severity": "major", "dimension": "maintainability-readability", "location": "commands/bench.md:13", "issue": "prescriptive command used banned legacy engine + backslash paths; fails on Ubuntu", "status": "fixed" },
+      { "severity": "major", "dimension": "maintainability-readability", "location": "CLAUDE.md:10", "issue": "claimed tests assert BOM but no such test existed", "status": "fixed (added tests/repo-conventions.Tests.ps1: BOM + legacy-engine-ref regression tests, suite 48->50)" },
+      { "severity": "minor", "dimension": "security", "location": ".github/workflows/linux-tests.yml", "issue": "no permissions block on public workflow", "status": "fixed (permissions: contents: read)" },
+      { "severity": "minor", "dimension": "security", "location": ".github/workflows/linux-tests.yml", "issue": "unpinned Pester from PSGallery", "status": "fixed (-RequiredVersion 5.7.1)" },
+      { "severity": "minor", "dimension": "security", "location": "hooks/lib/harness-common.ps1 ConvertTo-NativePath on Linux", "issue": "backslash is legal in Linux filenames; rewrite can alias into allowlist space (fail-open direction)", "status": "registered in constraints.md" },
+      { "severity": "minor", "dimension": "security", "location": "hooks/gate-ratchet.ps1 allowlist", "issue": "prefix match not canonicalized; <root>/docs/../src traversal passes (pre-existing)", "status": "registered in constraints.md" },
+      { "severity": "minor", "dimension": "maintainability-readability", "location": "commands/calibrate.md:15", "issue": "stale PS 5.1 justification for ConvertFrom-Json", "status": "fixed (reworded)" },
+      { "severity": "minor", "dimension": "performance", "location": ".claude/harness/config.json commands", "issue": "wrapped pwsh -Command form adds nested spawn; cross-dimension flag escalated: wrapper interpolation makes testQuick a permanent exit-0 no-op, silently neutralizing stop-gate since S2 (probe: WRAPPED=0, BARE=5)", "status": "fixed (bare pwsh script text; emission rule added to calibrate.md + CLAUDE.md)" },
+      { "severity": "minor", "dimension": "performance", "location": ".github/workflows/linux-tests.yml", "issue": "no module cache; on:[push,pull_request] double-triggers same-repo PRs", "status": "deferred (retro)" },
+      { "severity": "minor", "dimension": "maintainability-readability", "location": "hooks/gate-ratchet.ps1:12", "issue": "cwd not passed through ConvertTo-NativePath at entry (works via Find-HarnessDir self-normalization; rule-conformance inconsistency with gate-stop)", "status": "deferred (retro; hook code kept as panel-reviewed)" },
+      { "severity": "minor", "dimension": "maintainability-readability", "location": "hooks/lib/harness-common.ps1:16", "issue": "nested two-arg Join-Path idiom diverges from 3-arg standard elsewhere", "status": "deferred (retro)" },
+      { "severity": "minor", "dimension": "maintainability-readability", "location": "tests fixture helpers", "issue": "New-Fixture variants diverged (-LiteralPath only in ratchet's); no comment why", "status": "deferred (retro)" },
+      { "severity": "minor", "dimension": "maintainability-readability", "location": "tests payload construction", "issue": "repeated JSON payload string-concat idiom; extract shared helper", "status": "deferred (retro)" }
+    ],
+    "round2": "majors + 4 cheap minors fixed in-cycle; suite 50/50 under prescribed pwsh command; hook scripts untouched post-panel. Third environment-fidelity incident recorded (Git Bash chain produced 5 false-red CJK assertions; prescribed-engine rerun green).",
+    "notes": "First scorecard entry of the harness. Panel ran post-S8-docs, pre-PR, per decide-and-log sequencing decision."
+  }
+]

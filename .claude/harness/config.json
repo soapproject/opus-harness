@@ -1,8 +1,8 @@
 ﻿{
-  "stack": ["powershell", "pester"],
+  "stack": ["pwsh", "pester"],
   "commands": {
-    "test": "pwsh -NoProfile -Command \"$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount\"",
-    "testQuick": "pwsh -NoProfile -Command \"$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount\""
+    "test": "$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount",
+    "testQuick": "$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount"
   },
   "skillDispatch": { "security": ["security-review"] },
   "indexTools": { "codegraph": false },

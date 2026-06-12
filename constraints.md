@@ -20,6 +20,8 @@
 - 遙測補充：鎖定中放行 .claude/harness 下編輯時記 harness-edit-allowed 事件（自鬆綁稽核，供 /retro 檢視）
 - 已知缺口：matcher 只攔 Edit/Write/MultiEdit/NotebookEdit；Bash 寫檔可繞過（解鎖路徑比繞過便宜，風險評為低；繞過行為列入 retro 稽核）
 - 已知缺口：allowlist 用 `-like`（不分大小寫），Linux FS 區分大小寫 → `Docs/`、`SRC/` 等變體會被 docs allowlist 放行（fail-open 方向，2026-06 跨平台移植 R1 審查接受為已知限制）
+- 已知缺口：Linux 上 `\` 是合法檔名字元，ConvertTo-NativePath 會把名稱內的 `\` 改寫成分隔符 → 字面名含 `\` 的路徑可能混疊進 allowlist（fail-open 方向；2026-06 Phase 4 資安審查登記）
+- 已知缺口：allowlist 前綴比對未做路徑正規化，`<root>/docs/../src/x` 形式可借 docs 前綴過閘（既有缺口非移植引入；與上一條同候選修法：比對前 `[IO.Path]::GetFullPath` 正規化，置於既有 fail-open try/catch 內）
 - 2026-06 跨平台移植：allowlist 前綴改 `[WildcardPattern]::Escape` 組合（修復 root 含 `[ ]` 時比對失效——失效方向是誤鎖＝fail-closed，故屬正確性修復非鬆綁）
 
 ## review-threshold（三面向各 ≥ 7 且無 blocker）
