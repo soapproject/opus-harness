@@ -1,6 +1,6 @@
 ﻿param([string]$StdinJson)
 
-. (Join-Path $PSScriptRoot "lib\harness-common.ps1")
+. (Join-Path $PSScriptRoot "lib" "harness-common.ps1")
 
 try {
   try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
@@ -30,14 +30,16 @@ try {
     elseif ($payload.tool_input.PSObject.Properties["notebook_path"] -and $payload.tool_input.notebook_path) { $target = $payload.tool_input.notebook_path }
   }
   if (-not $target) { exit 0 }
-  $norm = $target -replace "/", "\"
+  $norm = ConvertTo-NativePath $target
 
   $root = Split-Path (Split-Path $harnessDir -Parent) -Parent
-  if ($norm -like (Join-Path $root ".claude\harness\*")) {
+  $harnessPrefix = Join-Path $root ".claude" "harness"
+  if ($norm -like ([WildcardPattern]::Escape($harnessPrefix) + [IO.Path]::DirectorySeparatorChar + '*')) {
     Write-Telemetry -HarnessDir $harnessDir -Constraint "ratchet" -Event "harness-edit-allowed" -Detail "red=$red target=$norm"
     exit 0
   }
-  if ($norm -like (Join-Path $root "docs\*")) { exit 0 }
+  $docsPrefix = Join-Path $root "docs"
+  if ($norm -like ([WildcardPattern]::Escape($docsPrefix) + [IO.Path]::DirectorySeparatorChar + '*')) { exit 0 }
 
   $slice = ""
   if ($state.PSObject.Properties["active_slice"]) { $slice = $state.active_slice }
