@@ -32,12 +32,12 @@
           "type": "array",
           "items": { "type": "string" },
           "default": ["main", "master"],
-          "description": "Release branches only a HUMAN may merge into. The repo default branch is ALWAYS implicitly protected even if omitted here; agents may EXTEND this list but never shrink it (constraints.md: human-merge-gate). Effective protected set = this list UNION existing main/master UNION resolvable origin/HEAD; if the whole git section is missing, treat as that full conservative set."
+          "description": "Release branches only a HUMAN may merge into; /calibrate anchors this list (non-empty, must include the repo's release/default branch). The default branch is ALWAYS implicitly protected; agents may EXTEND the protected set but never shrink it, and manipulating its inputs (remote set-head, re-pointing/removing remotes, deleting or renaming main/master) counts as shrinking (constraints.md: human-merge-gate). Effective protected set = this list UNION existing main/master UNION resolvable origin/HEAD; if the git section is missing or the set is undeterminable, treat as the full conservative set."
         },
         "integrationBranch": {
           "type": "string",
           "default": "",
-          "description": "Explicit override for where stage merges land. MUST NOT be a protected branch -- on conflict treat as unset and escalate. Empty = derive from the cycle's starting branch (protected start -> short-lived feature branch + final PR; non-protected start -> that branch is the integration target)."
+          "description": "Explicit override for where stage merges land. MUST NOT be a protected branch -- checked at cycle start and before every stage merge; on conflict treat as unset, decide-and-log, notify without pausing. Empty = derive from the cycle's starting branch (protected start -> short-lived feature branch + final PR; non-protected start -> that branch is the integration branch)."
         }
       }
     },

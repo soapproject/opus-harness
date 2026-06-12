@@ -61,9 +61,9 @@
 
 ## human-merge-gate（受保護分支合併必經人類核准）
 - 防範：被測量的 agent 拆自己的煞車（Goodhart）——發布用分支的內容只能由人類決策推進
-- 受保護集合（操作型定義）：`config.git.protectedBranches` ∪ {存在的 `main`/`master`} ∪ {可解析的 `origin/HEAD`}；config 缺 `git` 節 → 視同全集（保守向）。**agent 只能擴集、不得縮集；預設分支恆在集內。**
-- 閘門語意：受保護分支 ref 不得由 agent 以**任何方式**推進或破壞（merge／push／fast-forward／reset／branch -f／改名／刪除）；唯一途徑＝開 PR、人類核准。開發/hotfix 類（＝受保護集合以外的一切分支）由 agent 主動分段 merge，**僅限綠階段**（red_count==0 且 HEAD==last_green_commit、片 verifier 已過）。
-- 執法層（誠實記載）：**instruction 層**（harness-cycle skill＋CLAUDE.md），無 hook 攔截、無自動遙測事件。實際防線：config.json 已入版控（縮集會現形於 PR diff 人審）＋retro 稽核。加固方向（機制級候選）：PreToolUse Bash matcher 攔 `git merge/push/reset` 比對受保護集合。
+- 受保護集合（操作型定義）：`config.git.protectedBranches`（calibrate 錨定，必含發布分支）∪ {存在的 `main`/`master`} ∪ {可解析的 `origin/HEAD`}；config 缺 `git` 節或清單空且 origin/HEAD 不可解析 → 視同全集（保守向）。**agent 只能擴集、不得縮集；預設分支恆在集內；操縱集合定義輸入（remote set-head、增刪/改指 remote、刪除或改名 main/master）視同縮集，一律禁止。**
+- 閘門語意：受保護分支 ref 不得由 agent 以**任何方式**推進或破壞（merge／push／fast-forward／reset／branch -f／改名／刪除）；唯一途徑＝開 PR。**核准與合併皆為人類動作**——agent 不得執行或安排合併（`gh pr merge` 含 `--auto`、GitHub API、CI、排程、subagent 代行皆同；經代理推進視同本人）；**PR 開出後來源分支凍結**（需修改＝關閉重開或請人類重審）。開發/hotfix 類（＝受保護集合以外的一切分支）由 agent 主動分段 merge，**僅限綠階段**（自報錨點：red_count==0 且 HEAD==last_green_commit、片 verifier 已過；merge body 附全套測試指令＋exit code 供事後驗證）。
+- 執法層（誠實記載）：**instruction 層**（harness-cycle skill＋CLAUDE.md），無 hook 攔截、無自動遙測事件；錨點欄位（red_count／last_green_commit）為 agent 自報、低於棘輪上限時無遙測——分段 merge 的「綠」最終仍是 instruction 層保證。config.json 縮集屬**事後稽核**（版控歷史可見），非即時防線。加固方向（機制級候選）：PreToolUse Bash matcher 攔 `git merge/push/reset` 比對受保護集合。
 - 證據：對齊原則；2026-06-13 依使用者指示一般化（原為「機制級變更必經人類核准」）。**閘門存在性＋預設分支成員資格不可配置、不參與 ablation**。opus-harness 自身的機制級變更額外要求 bench A/B 後走本閘。
 - 摩擦成本：低頻（發布時點）；分段 merge 使開發期零摩擦
 - 鬆綁階梯：無（擴集屬 config、非鬆綁）

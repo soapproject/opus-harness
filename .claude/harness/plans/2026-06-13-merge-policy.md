@@ -32,13 +32,15 @@
 - [ ] `commands/calibrate.md`：步驟 5 欄位同步＋「config.json 範例（完整形）」補 `git` 節（完整 config 消費者契約）
 - [ ] `skills/adversarial-review/SKILL.md`：severity 定義消歧——「不擋合併安全」明確為「不擋受保護分支 PR」（分段 merge 的閘=片 verifier＋綠測試）
 - [ ] `commands/cycle.md`：前置檢查 #4 殘留清理併入 `tmp/merge-*.md`
-- 驗收：`claude plugin validate .` 過；全套件 50/50；`git grep -n "人類核准合併"` 僅歷史工件（plans/done/、specs/）留存
+- 驗收：`claude plugin validate .` 過；全套件 50/50；`git grep -n "人類核准合併"` 僅歷史工件（plans/done/、specs/）與新複合措辭處（README:51、bench.md:37「受保護分支由人類核准合併」）留存
 
 ## Decisions
 
 - bench A/B degenerate：golden set 空 → 本次閘門＝分支＋人類 PR 閘（首個 bench case 仍待打包）
 - 歷史工件（plans/done/、specs/）不回改
 - 計畫審查 R1（1 人唱反調）：2 blocker（integrationBranch×保護集合互斥缺失；空預設讀錯使用者需求→改啟動分支推導）＋6 major（tmp 未 ignore、保護集合無法判定、執法層未誠實登記、引用鏈自毀→message 自含、calibrate 契約漏改、審查維度砍錯）＋4 minor——全數採納入 v2
+- 執行後雙審 R2：maintainability 7 過（2 major：推導句漏 feature 分支子句、Phase 5 未接 PR 步驟——皆已修）；adversarial 1 blocker（`gh pr merge --auto` 武裝＋開 PR 後續推 source branch 洗白鏈 → 加「核准與合併皆人類動作＋代理視同本人＋PR 開出後來源分支凍結」）＋4 major（代理人未命名、集合定義輸入可操縱＋本 repo origin/HEAD 實測不可解析→calibrate 錨定、自報錨點誠實化＋merge body 附測試證據、CLAUDE.md 14↔15 矛盾→bump 改 PR 分支 merge 前最後一 commit）＋5 minor（疑似發布名先視同受保護、integrationBranch 檢查時點、tmp 唯一合法位置、縮集屬事後稽核、cutover 禁令涵蓋 install）——全數採納
+- 驗收措辭 grep 更正：新複合措辭「受保護分支由人類核准合併」含舊子字串，grep "人類核准合併" 的預期＝歷史工件＋新複合措辭處（README:51、bench.md:37），非僅歷史工件
 
 ## 驗收總表
 
@@ -47,4 +49,4 @@
 | JSON 健全 | `ConvertFrom-Json`（schema＋config） | 無錯 |
 | plugin 完整 | `claude plugin validate .` | pass |
 | 套件不退化 | G1 指令 | 50/50 exit 0 |
-| 措辭一致 | `git grep -n "人類核准合併" -- "*.md"` | 僅 plans/done/、specs/ |
+| 措辭一致 | `git grep -n "人類核准合併" -- "*.md"` | 僅 plans/done/、specs/ 與新複合措辭（README:51、bench.md:37） |

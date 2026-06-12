@@ -32,7 +32,7 @@
 3. `/plugin update opus-harness`（或移除後重裝）
 4. 重啟 session
 
-**嚴禁在未合併分支 checkout 狀態下 update**——那會把分支內容發佈成 live hooks，繞過 human-merge-gate。
+**嚴禁在未合併分支 checkout 狀態下執行任何安裝或更新動作（update／install／重裝）**——那會把分支內容發佈成 live hooks，繞過 human-merge-gate。
 
 ## 指令
 
