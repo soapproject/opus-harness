@@ -12,6 +12,8 @@
 - 檔案系統操作一律 `-LiteralPath` ＋ `-ErrorAction Stop`（在 try/catch 內）；狀態檔寫入用 temp+Move-Item 原子交換。
 - hook 讀 stdin 一律用 lib 的 Read-HookStdin（強制 UTF-8 解碼）；執行外部指令字串用 -EncodedCommand（防引號剝離）。
 - 發版（merge 到 master）後必 bump `.claude-plugin/plugin.json` 的 version——`claude plugin update` 以版本號判斷新舊，不 bump 等於沒發佈、cutover 不會生效（2026-06-13 實證）。
+- 受保護分支（`config.git.protectedBranches` ∪ 預設分支；本 repo＝master）：agent 不得推進其 ref，只能開 PR 等人類核准；開發/hotfix 類分支（其餘一切）＝綠階段主動分段 merge（細節見 harness-cycle skill「分支與合併策略」）。
+- merge message 寫 **why** 不寫 what 且自含（`merge(<topic>): <一句 why>`＋3–6 行 body：解什麼問題／為何此作法／捨棄了什麼）；不引用會消失或搬家的檔案路徑。分段 merge 只准綠階段（red_count==0、HEAD==last_green_commit、verifier 過）。
 
 ## Lessons
 

@@ -6,6 +6,7 @@
   },
   "skillDispatch": { "security": ["security-review"] },
   "indexTools": { "codegraph": false },
+  "git": { "protectedBranches": ["master"], "integrationBranch": "" },
   "voting": { "panelSize": 3, "ratchetLimit": 2 },
   "review": { "dimensions": ["performance", "maintainability-readability", "security"], "threshold": 7 },
   "planApproval": "notify"

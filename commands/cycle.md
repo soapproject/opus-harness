@@ -18,7 +18,7 @@ argument-hint: <任務描述> | pause | resume
 1. `.claude/harness/config.json` 存在？否 → 先完整執行 /opus-harness:calibrate 的步驟。
 2. `git rev-parse --is-inside-work-tree` 成功？否 → 提議 `git init`（棘輪依賴 git）；使用者拒絕 → 明說 cycle 無法啟動並停止。
 3. `config.commands.test` 存在？否 → 回 calibrate 補測試框架（TDD 硬前提）。
-4. `plans/` 有未完成的 persistent 計畫（檔內仍有 `- [ ]`）？→ 問使用者：恢復它（state 指回該計畫、phase=executing）或歸檔（搬 `plans/done/`）後開新的。不默默開新的。同時檢查 `.claude/harness/tmp/plan-*.md` 殘留（上次 ephemeral cycle 異常中斷遺留）→ 刪除並在回報中提及。
+4. `plans/` 有未完成的 persistent 計畫（檔內仍有 `- [ ]`）？→ 問使用者：恢復它（state 指回該計畫、phase=executing）或歸檔（搬 `plans/done/`）後開新的。不默默開新的。同時檢查 `.claude/harness/tmp/plan-*.md`、`tmp/merge-*.md` 殘留（上次 ephemeral cycle 異常中斷遺留）→ 刪除並在回報中提及。
 
 ## 啟動
 

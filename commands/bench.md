@@ -34,7 +34,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File <plugin>/bench/runner.ps1 -KeepWor
 
 | case | verify | total | baseline | 達標 |
 
-全表＋未達標 case 的 notes 摘要。提醒使用者：機制級 harness 變更要把本次結果（results JSON）隨變更一起 commit——人類核准合併（constraints.md human-merge-gate）。
+全表＋未達標 case 的 notes 摘要。提醒使用者：機制級 harness 變更要把本次結果（results JSON）隨變更一起 commit——受保護分支由人類核准合併（constraints.md human-merge-gate）。
 
 ## 4. 清理
 

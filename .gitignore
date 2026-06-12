@@ -1,3 +1,4 @@
 bench/work/
 .claude/harness/state.json
 .claude/harness/telemetry.jsonl
+.claude/harness/tmp/
