@@ -11,3 +11,8 @@
 - harness config 的 `commands.*` 是 **pwsh 腳本文字**（stop-gate 用 `pwsh -EncodedCommand` 原樣執行）：原生指令列（`npm test`）可直接放；PowerShell 內建寫裸腳本文字（`$r = Invoke-Pester ...; exit $r.FailedCount`）。**嚴禁再包一層 `pwsh -Command "..."`**——外層執行時先插值 `$` 變數，實測會把指令變成永遠 exit 0 的 no-op（2026-06-12 dogfooding 實證，stop-gate 因此被無聲中和）。
 - 檔案系統操作一律 `-LiteralPath` ＋ `-ErrorAction Stop`（在 try/catch 內）；狀態檔寫入用 temp+Move-Item 原子交換。
 - hook 讀 stdin 一律用 lib 的 Read-HookStdin（強制 UTF-8 解碼）；執行外部指令字串用 -EncodedCommand（防引號剝離）。
+- 發版（merge 到 master）後必 bump `.claude-plugin/plugin.json` 的 version——`claude plugin update` 以版本號判斷新舊，不 bump 等於沒發佈、cutover 不會生效（2026-06-13 實證）。
+
+## Lessons
+
+- [2026-06-13 ×2 @fable-5] 當編輯含非 ASCII 的 repo 文字檔時，一律用編輯器級檔案工具（Read/Edit/Write），禁止 shell 字串手術（無 -Encoding 的 Get-Content/Set-Content 重寫）（因為兩次中文亂碼事故——T4 期 BOM 缺失、S2 前計畫檔全毀——都是 shell 重寫造成）。
