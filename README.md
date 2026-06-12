@@ -1,13 +1,16 @@
 # opus-harness
 
 讓較弱模型（Opus 4.8）維持工作品質的鷹架：模型越弱、鷹架越硬。
-Spec：`ws\idea\docs\superpowers\specs\2026-06-12-opus-quality-harness-design.md`
 
-## 安裝（local）
+## 安裝
 
-1. `/plugin marketplace add <path-to-repo>`
+從 GitHub：
+
+1. `/plugin marketplace add soapproject/opus-harness`
 2. `/plugin install opus-harness@opus-harness-local`
 3. 重啟 Claude Code session。
+
+或從本地 clone：`/plugin marketplace add <path-to-repo>` 後同上。
 4. 註：`marketplace.json` 的 `source: "./"` 是相對 marketplace 根（= repo 根）解析，本 repo 兼作自身的 marketplace。
 
 ## 指令

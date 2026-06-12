@@ -102,7 +102,7 @@ Describe "bench runner" {
     $ec = $LASTEXITCODE
     $ec | Should -Be 0
     # bench\work is under the runner script's dir (bench\)
-    $workDir = "<path-to-repo>\bench\work"
+    $workDir = Join-Path (Join-Path (Split-Path $PSScriptRoot -Parent) "bench") "work"
     $leftovers = Get-ChildItem -LiteralPath $workDir -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "case-01-stub-*" }
     @($leftovers).Count | Should -Be 0
   }
