@@ -28,7 +28,7 @@
     "voting": {
       "type": "object",
       "properties": {
-        "panelSize": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3 },
+        "panelSize": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3, "description": "Reserved, not consumed yet: panel composition follows review.dimensions (one reviewer per dimension)." },
         "ratchetLimit": { "type": "integer", "minimum": 1, "default": 2 }
       }
     },

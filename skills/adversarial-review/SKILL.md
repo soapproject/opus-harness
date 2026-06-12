@@ -18,13 +18,13 @@ description: Use during /opus-harness:cycle Phase 2 (plan self-review) and Phase
 
 ## B. 每片 verifier（Phase 3 每片收尾）
 
-- 1 個 subagent（model: sonnet），輸入：該片驗收標準＋`git diff <片起點>..HEAD`＋驗收指令的實際輸出。
+- 1 個 subagent（model: sonnet），輸入：該片驗收標準＋`git diff <片起點>..HEAD`（片起點 = 上一個 `last_green_commit`；首片 = state 的 `start_commit`）＋驗收指令的實際輸出。
 - 任務：「驗收標準是否真的被滿足？輸出是否真的證明了主張？」回 `{"pass": bool, "reason": "..."}`。
 - fail → 該片不算完成，紅計數照常累加（棘輪管轄）。
 
 ## C. 三面向評分小組（Phase 4，feature 完成時）
 
-3 個 reviewer 並行（model: 繼承主模型），共同輸入：spec＋完整 diff（cycle 起點..HEAD）＋各自面向指引。各回：
+每個面向一個 reviewer、並行（model: 繼承主模型）；面向清單取自 `config.review.dimensions`（預設三項，ablation 時可減）。共同輸入：spec＋完整 diff（`state.start_commit`..HEAD）＋各自面向指引。各回：
 
 ```json
 {
@@ -45,8 +45,10 @@ description: Use during /opus-harness:cycle Phase 2 (plan self-review) and Phase
 **scorecard**：每次小組結束，追加一筆到 `.claude/harness/scorecard.json`（JSON 陣列檔；不存在則建立 `[]` 再追加）：
 
 ```json
-{ "ts": "<ISO8601>", "cycle_id": "...", "scores": { "performance": 8, "maintainability-readability": 7, "security": 9 }, "blockers": 0, "majors": 1, "rounds": 1 }
+{ "ts": "<ISO8601>", "cycle_id": "...", "scores": { "performance": 8, "maintainability-readability": 7, "security": 9 }, "blockers": 0, "majors": 1, "rounds": 1, "findings": [{ "severity": "major", "file": "...", "detail": "..." }] }
 ```
+
+（`findings` = 三位 reviewer 的發現合併；retro 的回顧來源之一，不存就丟了。）
 
 ## D. 紅隊（選配 --redteam）
 

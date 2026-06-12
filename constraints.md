@@ -18,6 +18,7 @@
 - 鬆綁階梯：limit 2 → 3 → 5 → 關閉
 - 挑戰條件：模型升級；或遙測顯示觸發後 revert 重切的成功率不優於放任繼續修
 - 遙測補充：鎖定中放行 .claude/harness 下編輯時記 harness-edit-allowed 事件（自鬆綁稽核，供 /retro 檢視）
+- 已知缺口：matcher 只攔 Edit/Write/MultiEdit/NotebookEdit；Bash 寫檔可繞過（解鎖路徑比繞過便宜，風險評為低；繞過行為列入 retro 稽核）
 
 ## review-threshold（三面向各 ≥ 7 且無 blocker）
 - 防範：低品質碼過關（效能／可維護可讀／資安）
