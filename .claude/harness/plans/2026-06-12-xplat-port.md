@@ -49,7 +49,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 內嵌 T3 全文如上
 
 ### S5 gate-ratchet 平台中立＋wildcard escape 修復＋T4
-- [ ] 行為：ratchet 正規化、allowlist 在兩平台正確且抗 `[ ]` 路徑
+- [x] 行為：ratchet 正規化、allowlist 在兩平台正確且抗 `[ ]` 路徑（c3ab7c4；紅證據：T4b 紅——unescaped -like 把 `[1]` 當字元類；T4 本機綠如預期，Linux 紅證據在 CI；48/48 綠；verifier pass 零 blocker；其 minor＝New-Fixture 預設 $env:TEMP 屬 S6 範圍）
 - 檔案：`hooks/gate-ratchet.ps1`、`tests/gate-ratchet.Tests.ps1`
 - 先加 T4：Given 紅 ≥ limit 且 file_path 為平台中立構造的 `<root>/src/a.ts` 與 `<root>/docs/p.md`，Then src block（exit 2）、docs allow（exit 0）；加 T4b：root 含 `[1]` 的 fixture，allowlist 判斷仍正確
 - 改：`-replace "/", "\"` → ConvertTo-NativePath；allowlist pattern 以 `[WildcardPattern]::Escape($root)` 組合＋平台分隔符
