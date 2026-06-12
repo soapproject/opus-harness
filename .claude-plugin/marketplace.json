@@ -1,6 +1,7 @@
 {
   "name": "opus-harness-local",
   "owner": { "name": "weiss" },
+  "metadata": { "description": "Local marketplace for the opus-harness quality plugin" },
   "plugins": [
     {
       "name": "opus-harness",

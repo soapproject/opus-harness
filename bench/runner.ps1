@@ -101,7 +101,7 @@ foreach ($caseDir in $caseDirs) {
 
     # Build agent command: replace {PROMPT} token (double-quotes in prompt -> single-quotes)
     $safePrompt = $prompt -replace '"', "'"
-    $cmd = $AgentCommand -replace '\{PROMPT\}', $safePrompt
+    $cmd = $AgentCommand.Replace("{PROMPT}", $safePrompt)
 
     # Run agent in the worktree with CWD = worktree (Push-Location/try/finally)
     $agentExit = -1
