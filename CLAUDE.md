@@ -1,6 +1,6 @@
 ﻿# opus-harness 開發守則
 
-- Commit 前必跑（一律在 pwsh 內）：`pwsh -NoProfile -Command "$r = Invoke-Pester -Path tests -PassThru -Output Detailed; exit $r.FailedCount"`，全綠才准 commit。
+- Commit 前必跑：`pwsh -NoProfile -Command '$r = Invoke-Pester -Path tests -PassThru -Output Detailed; exit $r.FailedCount'`，全綠才准 commit。**-Command 引數一律單引號**——雙引號會被外層 shell（pwsh/bash 皆然）先插值 `$r` 成空字串，淪為永遠 exit 0 的假綠（與 config 包裝形同一 bug 類，2026-06-12 實證）。
 - hook 腳本鐵律：**fail-open**——任何異常（缺檔、壞 JSON、自身錯誤）一律 exit 0 放行並寫 stderr 警告；只有明確判定違規才 exit 2。
 - 任何新增/修改硬閘行為，必須同步更新 `constraints.md` 登記（無登記的約束不得上線）。
 - 機制級變更（hook、流程、config schema）合併前先對 golden set 跑 `/opus-harness:bench`，結果存 `bench/results/`。
