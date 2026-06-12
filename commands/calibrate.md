@@ -12,7 +12,7 @@ description: 校準本專案：偵測工具鏈，產出 .claude/harness/config.j
 2. **檔案探測**（fallback）：Glob 找 `package.json`、`pyproject.toml`、`cargo.toml`、`go.mod`、`*.csproj`。從內容判讀 stack 與既有 scripts（test/lint/build…）。
 3. **組出五個指令**：`test`、`testQuick`（受影響範圍的快跑版，如 `vitest related --run`、`pytest -x --lf`；無快跑法就同 `test`）、`lint`、`typecheck`、`build`。每個指令先實際跑一次驗證可執行（容許測試紅，但指令本身要能跑）。testQuick 必須是**零參數、從專案根目錄可直接執行**的指令（stop-gate 會原樣執行它）。指令字串是 **pwsh 腳本文字**（stop-gate 以 `pwsh -EncodedCommand` 執行）：原生指令列（`npm test`）直接放；PowerShell 內建（如 Pester）寫裸腳本文字 `$r = Invoke-Pester -Path tests -PassThru -Output None; exit $r.FailedCount`。**嚴禁包一層 `pwsh -Command "..."`**——外層 pwsh 會先把 `"` 內的 `$` 變數插值掉，實測淪為永遠 exit 0 的 no-op、stop-gate 形同關閉（2026-06-12 dogfooding 實證）。驗證可執行性時就用 stop-gate 的同構方式跑：`pwsh -EncodedCommand <base64(指令字串)>`。
 4. **無測試框架 → 硬要求**：向使用者提議安裝該 stack 的標準測試框架並完成最小設定（一個可跑的空測試）。使用者拒絕 → 明說「/cycle 將無法啟動（TDD 硬前提）」並停止。
-5. **寫設定**：建立目錄 `.claude/harness/{specs,plans,plans/done,tmp}`；寫 `.claude/harness/config.json`，欄位見 plugin 的 `templates/config.schema.json`；**寫完整 config（所有選用欄位都帶預設值——schema 的 default 不會自動生效，這是 schema 開頭 description 明定的消費者契約）**。以 `ConvertFrom-Json` 解析＋檢查必填欄位 `commands.test` 非空（與 hook 程式同一條解析路徑，驗的就是消費者實際讀法）。`skillDispatch` 依偵測結果填（react → vercel-react-best-practices、vercel-composition-patterns；ui → web-design-guidelines；security → security-review；查無已安裝 skill 就不填該鍵）。
+5. **寫設定**：建立目錄 `.claude/harness/{specs,plans,plans/done,tmp}`；寫 `.claude/harness/config.json`，欄位見 plugin 的 `templates/config.schema.json`；**寫完整 config（所有選用欄位都帶預設值——schema 的 default 不會自動生效，這是 schema 開頭 description 明定的消費者契約）**。以 `ConvertFrom-Json` 解析＋檢查必填欄位 `commands.test` 非空（與 hook 程式同一條解析路徑，驗的就是消費者實際讀法）。`skillDispatch` 依偵測結果填（react → vercel-react-best-practices、vercel-composition-patterns；ui → web-design-guidelines；security → security-review；查無已安裝 skill 就不填該鍵）。`git.protectedBranches` 由 calibrate **錨定**：必為非空且含 repo 發布/預設分支（origin/HEAD 不可解析時問使用者一次），名稱疑似發布用者（`release*`／`prod*`／`stable*`、CI 部署目標）一併提議納入；`integrationBranch` 預設空、不得填受保護分支。
 6. **gitignore**：專案 `.gitignore` 追加 `.claude/harness/tmp/`、`.claude/harness/state.json`、`.claude/harness/telemetry.jsonl`（已有則略）。specs/、plans/、scorecard.json、retro.md 是持久工件，**要**入版控。
 7. **CLAUDE.md 指標**：專案 CLAUDE.md 確保存在一行（不複製指令內容，控制 context 肥胖）：
    `> opus-harness 已校準：驗證指令見 .claude/harness/config.json`
@@ -36,6 +36,7 @@ description: 校準本專案：偵測工具鏈，產出 .claude/harness/config.j
     "security": ["security-review"]
   },
   "indexTools": { "codegraph": true },
+  "git": { "protectedBranches": ["main"], "integrationBranch": "" },
   "voting": { "panelSize": 3, "ratchetLimit": 2 },
   "review": { "dimensions": ["performance", "maintainability-readability", "security"], "threshold": 7 },
   "planApproval": "notify"

@@ -38,7 +38,7 @@ description: Use during /opus-harness:cycle Phase 2 (plan self-review) and Phase
 - **效能**：演算法複雜度、N+1、不必要重算/重渲染、記憶體與 bundle 熱點。`config.skillDispatch` 有對應條目（如 react）→ 先載入該 skill 再審。
 - **可維護性與可讀性**：簡化機會、慣例一致、命名、最小變更原則。有安裝 code-review / simplify skill → 作為本面向工具。
 - **資安**：輸入驗證、注入、秘密洩漏、權限邊界。有 security-review skill → 優先使用。
-- severity 定義：blocker = 不修就會造成事故或顯著退化；major = 應修但不擋合併安全；minor = 建議。
+- severity 定義：blocker = 不修就會造成事故或顯著退化；major = 應修但不擋**受保護分支 PR**（分段 merge 的閘＝片 verifier＋綠測試，不因 major 暫停）；minor = 建議。
 
 **判定**：無 blocker 且每面向 score ≥ `config.review.threshold`（預設 7）→ 放行。否則修正後重審，**最多 2 輪**；仍不過 → 升級人類。
 

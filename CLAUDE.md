@@ -11,7 +11,9 @@
 - harness config 的 `commands.*` 是 **pwsh 腳本文字**（stop-gate 用 `pwsh -EncodedCommand` 原樣執行）：原生指令列（`npm test`）可直接放；PowerShell 內建寫裸腳本文字（`$r = Invoke-Pester ...; exit $r.FailedCount`）。**嚴禁再包一層 `pwsh -Command "..."`**——外層執行時先插值 `$` 變數，實測會把指令變成永遠 exit 0 的 no-op（2026-06-12 dogfooding 實證，stop-gate 因此被無聲中和）。
 - 檔案系統操作一律 `-LiteralPath` ＋ `-ErrorAction Stop`（在 try/catch 內）；狀態檔寫入用 temp+Move-Item 原子交換。
 - hook 讀 stdin 一律用 lib 的 Read-HookStdin（強制 UTF-8 解碼）；執行外部指令字串用 -EncodedCommand（防引號剝離）。
-- 發版（merge 到 master）後必 bump `.claude-plugin/plugin.json` 的 version——`claude plugin update` 以版本號判斷新舊，不 bump 等於沒發佈、cutover 不會生效（2026-06-13 實證）。
+- 發版的 version bump（`.claude-plugin/plugin.json`）必須是**發版 PR 分支上 merge 前的最後一個 commit**——不得 merge 後在 master 補 commit（受保護分支 agent 不得推進）。不 bump 等於沒發佈：`claude plugin update` 以版本號判斷新舊，cutover 不會生效（2026-06-13 實證）。
+- 受保護分支（`config.git.protectedBranches` ∪ 存在的 main/master ∪ origin/HEAD；本 repo＝master）：agent 不得推進其 ref，只能開 PR；**核准與合併皆人類動作**（gh pr merge／--auto／API／CI／subagent 代行皆禁，PR 開出後來源分支凍結）。開發/hotfix 類分支（其餘一切）＝綠階段主動分段 merge（細節見 harness-cycle skill「分支與合併策略」）。
+- merge message 寫 **why** 不寫 what 且自含（`merge(<topic>): <一句 why>`＋3–6 行 body：解什麼問題／為何此作法／捨棄了什麼＋全套測試指令與 exit code）；不引用會消失或搬家的檔案路徑。分段 merge 只准綠階段（自報錨點：red_count==0、HEAD==last_green_commit、verifier 過）。
 
 ## Lessons
 

@@ -32,7 +32,7 @@
 3. `/plugin update opus-harness`（或移除後重裝）
 4. 重啟 session
 
-**嚴禁在未合併分支 checkout 狀態下 update**——那會把分支內容發佈成 live hooks，繞過 human-merge-gate。
+**嚴禁在未合併分支 checkout 狀態下執行任何安裝或更新動作（update／install／重裝）**——那會把分支內容發佈成 live hooks，繞過 human-merge-gate。
 
 ## 指令
 
@@ -48,4 +48,5 @@
 - 每條硬約束登記於 `constraints.md`（防範模式／證據／鬆綁階梯／挑戰條件）。
 - hooks 觸發寫入專案 `telemetry.jsonl`；高摩擦約束優先檢討。
 - 模型升級：bench 對比 → 逐一 ablation（手動關約束重跑）→ 沿鬆綁階梯放鬆 → scorecard 監測。
-- lesson 級改進自動（/retro 兩次門檻）；機制級走分支 + bench A/B + **人類核准合併（不可配置）**。
+- lesson 級改進自動（/retro 兩次門檻）；機制級走分支 + bench A/B + **受保護分支由人類核准合併（不可配置；預設分支恆受保護）**。
+- 開發/hotfix 類分支（受保護集合以外的一切）：agent 主動**分段 merge**（綠階段才合）；merge message 寫 why 不寫 what。受保護集合定義與細節見 `constraints.md` human-merge-gate 與 harness-cycle skill。
