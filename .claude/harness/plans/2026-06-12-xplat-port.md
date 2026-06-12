@@ -13,6 +13,8 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - [計畫審查 R1] G3 量測樣式改為抓**裸 `powershell`**（word-boundary），否則 runner.Tests/config 的無 .exe 引用漏網——spec 驗證表已同步修訂
 - [S2 前] 教訓實例：用 PS 5.1 Get-Content（未帶 -Encoding utf8）讀寫無 BOM UTF-8 計畫檔導致全檔亂碼，自 context 重建——repo 文字檔的編輯一律用檔案工具，不用 shell 字串手術（retro 候選）
 - [S2 驗證] 教訓實例：S2 verifier 與 S3 implementer 並行於同一 working tree → verifier 跑套件得到污染性假紅（16 紅 vs 靜止重跑 45 綠）。會執行測試的 verifier 不是純讀取操作，必須在 tree 靜止時跑或用隔離 worktree（retro 候選，harness 級）
+- [S4 驗證] 教訓實例：S4 verifier 用 Windows PowerShell 5.1 host 跑套件得 17 紅（報告自述「the runner is Windows PowerShell 5.1」；T3 的 3-arg Join-Path 在 5.1 必紅），但 spec 邊界明文棄 5.1、G1 判準引擎是 pwsh。安靜樹 b4beacd 以規定指令重跑 = 46/46 exit 0 → 裁決 S4 通過。教訓：verifier 必須逐字執行 spec 驗證表的指令（含 shell 引擎），不得意譯或換引擎；與 S2 並行污染同屬「驗證環境保真」類（retro 候選，harness 級）
+- [S4 後] 落實先前已記錄的 gitignore 決議（state.json/telemetry.jsonl 入 .gitignore）並補 git add 漏掉的 specs/（persistent 工件應入版控；plans/ 已入而 specs/ 漏了）
 
 ## Slices（依賴：S1→S2→S3→S4→S5→S6→S7→S8；G2 達成點在 S7）
 
@@ -39,7 +41,7 @@ cycle：20260612-xplat-port ｜ type：persistent ｜ spec：`.claude/harness/sp
 - 內嵌 T2（前半）：綠的驗收在 S7
 
 ### S4 lib＋gate-stop 平台中立＋gate-stop child→pwsh＋T3
-- [ ] 行為：harness-common 與 gate-stop 在兩平台正確（含 stop-gate 子行程引擎）
+- [x] 行為：harness-common 與 gate-stop 在兩平台正確（含 stop-gate 子行程引擎）（b4beacd；安靜樹 pwsh 重跑 46/46 綠；verifier 紅判定經裁決推翻，見 Decisions）
 - 檔案：`hooks/lib/harness-common.ps1`、`hooks/gate-stop.ps1`、`tests/harness-common.Tests.ps1`
 - 先加 T3：Given Find-HarnessDir 收到含正斜線的輸入路徑，When 探索，Then 找到 harness 目錄
 - 改：字面值 `".claude\harness"` join → 兩段 Join-Path；新增 `ConvertTo-NativePath` helper（`/`、`\` → `[IO.Path]::DirectorySeparatorChar`），外部輸入路徑入口先過它；gate-stop 子行程 `powershell.exe -EncodedCommand` → `pwsh -EncodedCommand`（保留 -NonInteractive）
