@@ -19,6 +19,8 @@
 - 挑戰條件：模型升級；或遙測顯示觸發後 revert 重切的成功率不優於放任繼續修
 - 遙測補充：鎖定中放行 .claude/harness 下編輯時記 harness-edit-allowed 事件（自鬆綁稽核，供 /retro 檢視）
 - 已知缺口：matcher 只攔 Edit/Write/MultiEdit/NotebookEdit；Bash 寫檔可繞過（解鎖路徑比繞過便宜，風險評為低；繞過行為列入 retro 稽核）
+- 已知缺口：allowlist 用 `-like`（不分大小寫），Linux FS 區分大小寫 → `Docs/`、`SRC/` 等變體會被 docs allowlist 放行（fail-open 方向，2026-06 跨平台移植 R1 審查接受為已知限制）
+- 2026-06 跨平台移植：allowlist 前綴改 `[WildcardPattern]::Escape` 組合（修復 root 含 `[ ]` 時比對失效——失效方向是誤鎖＝fail-closed，故屬正確性修復非鬆綁）
 
 ## review-threshold（三面向各 ≥ 7 且無 blocker）
 - 防範：低品質碼過關（效能／可維護可讀／資安）
